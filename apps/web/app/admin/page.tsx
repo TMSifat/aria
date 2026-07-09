@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getPlatformSummary, listUsers } from '@/lib/admin';
 import { formatDate, formatNumber } from '@/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminOverviewPage() {
   const [summary, users] = await Promise.all([
     getPlatformSummary(),

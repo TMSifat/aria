@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { listUsers } from '@/lib/admin';
 import { formatDate } from '@/lib/utils';
+
+export const dynamic = 'force-dynamic';
 import {
   Table,
   TableBody,

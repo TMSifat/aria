@@ -7,6 +7,8 @@ import type { PlanId } from '@/lib/plans';
 import { formatDate, formatNumber, truncate } from '@/lib/utils';
 import { UserActions } from '@/components/admin/user-actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminUserDetailPage({
   params,
 }: {
