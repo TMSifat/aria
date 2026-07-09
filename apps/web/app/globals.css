@@ -1,0 +1,212 @@
+@import 'tailwindcss';
+
+/* ─── Design tokens (warm editorial: cream paper, ink, terracotta) ──────── */
+:root {
+  --bg: #ecede7; /* paper — page background */
+  --surface: #f4f5ef; /* card — cards, panels */
+  --surface-raised: #fbf8f1; /* inputs, raised areas */
+  --border: rgba(22, 21, 15, 0.15); /* hairline on paper */
+  --border-teal: rgba(22, 21, 15, 0.15); /* same hairline, kept for compat */
+  --primary: #c8501f; /* terracotta accent */
+  --primary-hover: #a8431a;
+  --primary-dim: rgba(200, 80, 31, 0.08); /* active nav, hover states */
+  --primary-text: #c8501f; /* accent text links */
+  --teal-light: #e88a5c; /* accent-soft — used on dark surfaces */
+  --teal-dark: #16150f; /* ink — gradient end / pricing card */
+  --text: #16150f; /* ink */
+  --text-secondary: #3e3b30; /* body copy on paper */
+  --text-muted: #6e6a5c; /* muted body/eyebrow text */
+  --text-faint: #8b8674; /* faint labels, placeholders */
+  --on-dark-muted: #a8a392; /* secondary text on ink surfaces */
+  --success: #2f7d52;
+  --success-dark: #6fbf8e; /* success on ink surfaces */
+  --destructive: #b03a2e;
+  --destructive-dim: rgba(176, 58, 46, 0.08);
+  --shadow-sm: 0 1px 2px rgba(22, 21, 15, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(22, 21, 15, 0.07), 0 2px 4px -1px rgba(22, 21, 15, 0.04);
+  --shadow-teal: 0 4px 14px rgba(200, 80, 31, 0.2);
+}
+
+/* ─── Expose tokens as Tailwind v4 utilities (bg-surface, text-muted, …) ─── */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-teal: var(--border-teal);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-dim: var(--primary-dim);
+  --color-primary-text: var(--primary-text);
+  --color-teal-light: var(--teal-light);
+  --color-teal-dark: var(--teal-dark);
+  --color-text-base: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-on-dark-muted: var(--on-dark-muted);
+  --color-success: var(--success);
+  --color-success-dark: var(--success-dark);
+  --color-destructive: var(--destructive);
+  --color-destructive-dim: var(--destructive-dim);
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d8d2c2 #ecede7;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: #ecede7;
+}
+*::-webkit-scrollbar-thumb {
+  background: #d8d2c2;
+  border-radius: 9999px;
+}
+
+/* ─── Reusable helpers ──────────────────────────────────────────────────── */
+.shadow-teal {
+  box-shadow: var(--shadow-teal);
+}
+
+@keyframes blink {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ─── Landing page motion ───────────────────────────────────────────────── */
+@keyframes wordSpin {
+  0%,
+  15% {
+    transform: translateY(0);
+  }
+  20%,
+  35% {
+    transform: translateY(-58px);
+  }
+  40%,
+  55% {
+    transform: translateY(-116px);
+  }
+  60%,
+  75% {
+    transform: translateY(-174px);
+  }
+  80%,
+  95% {
+    transform: translateY(-232px);
+  }
+  100% {
+    transform: translateY(-290px);
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseDot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes ariaPop {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ariaFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes ariaRing {
+  0% {
+    box-shadow:
+      0 14px 34px rgba(22, 21, 15, 0.3),
+      0 0 0 0 rgba(200, 80, 31, 0.45);
+  }
+  70% {
+    box-shadow:
+      0 14px 34px rgba(22, 21, 15, 0.3),
+      0 0 0 14px rgba(200, 80, 31, 0);
+  }
+  100% {
+    box-shadow:
+      0 14px 34px rgba(22, 21, 15, 0.3),
+      0 0 0 0 rgba(200, 80, 31, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
