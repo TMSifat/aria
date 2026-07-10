@@ -85,8 +85,12 @@ Both apps read env from the repo root `.env` (the web app also reads
   API key (`Authorization: Bearer aria_sk_...`).
 - **Chat streaming.** `POST /api/chat` verifies the session, enforces the monthly
   message limit and a 20 req/min per-user rate limit (Redis sliding window, fails
-  open if Redis is down), streams Claude's response as SSE, and logs token usage.
-  The model is configurable via `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
+  open if Redis is down), streams the model's response as SSE, and logs token
+  usage. **Provider-switchable** (`lib/ai.ts`): set `GOOGLE_API_KEY` to use
+  Gemini (free tier at aistudio.google.com), or `ANTHROPIC_API_KEY` for Claude —
+  Gemini wins when both are set unless `AI_PROVIDER` forces one. Models are
+  configurable via `GOOGLE_MODEL` (default `gemini-2.5-flash`) and
+  `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
 - **Stripe.** Checkout + billing portal + webhook (`checkout.session.completed`,
   `customer.subscription.updated` / `.deleted`, `invoice.payment_failed`). The
   webhook reads the raw body via `req.text()` for signature verification.

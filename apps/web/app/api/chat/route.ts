@@ -1,16 +1,11 @@
 import { auth } from '@/lib/auth';
-import { anthropic, ARIA_MODEL } from '@/lib/anthropic';
 import { prisma } from '@/lib/prisma';
 import { PLAN_LIMITS, type PlanId } from '@/lib/plans';
 import { rateLimit } from '@/lib/ratelimit';
+import { streamAssistantReply, type ChatTurn } from '@/lib/ai';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
 export async function POST(req: Request) {
   // 1. Verify session
@@ -32,14 +27,16 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as {
     assistantId?: string;
     message?: string;
-    history?: ChatMessage[];
+    history?: ChatTurn[];
   } | null;
 
   if (!body?.assistantId || !body.message?.trim()) {
     return Response.json({ error: 'Bad request' }, { status: 400 });
   }
   const { assistantId, message } = body;
-  const history = Array.isArray(body.history) ? body.history : [];
+  const history = (Array.isArray(body.history) ? body.history : []).filter(
+    (m) => m && (m.role === 'user' || m.role === 'assistant'),
+  );
 
   // 3. Fetch assistant (verify ownership)
   const assistant = await prisma.assistant.findFirst({
@@ -75,51 +72,31 @@ export async function POST(req: Request) {
       : '',
   ].join('');
 
-  // 6. Start streaming
-  const anthropicMessages = [
-    ...history
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .map((m) => ({ role: m.role, content: m.content })),
-    { role: 'user' as const, content: message },
-  ];
-
-  const stream = anthropic.messages.stream({
-    model: ARIA_MODEL,
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages: anthropicMessages,
-  });
-
-  // 7. Return SSE stream
+  // 6. Stream from the active provider (Gemini or Claude) as SSE
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        for await (const event of stream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
+        const usage = await streamAssistantReply({
+          system: systemPrompt,
+          history,
+          message,
+          maxTokens: 1024,
+          onText: (text) => {
             controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ text: event.delta.text })}\n\n`,
-              ),
+              encoder.encode(`data: ${JSON.stringify({ text })}\n\n`),
             );
-          }
-        }
-
-        const finalMessage = await stream.finalMessage();
-        const inputTokens = finalMessage.usage.input_tokens;
-        const outputTokens = finalMessage.usage.output_tokens;
+          },
+        });
 
         await prisma.usageLog.create({
           data: {
             userId,
             assistantId: assistant.id,
             source: 'DASHBOARD',
-            inputTokens,
-            outputTokens,
-            totalTokens: inputTokens + outputTokens,
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            totalTokens: usage.inputTokens + usage.outputTokens,
           },
         });
 
