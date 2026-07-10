@@ -5,6 +5,7 @@ import Google from 'next-auth/providers/google';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { prisma } from './prisma';
+import { rateLimit } from './ratelimit';
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -29,6 +30,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
+
+        // Brute-force protection: 10 attempts per email per 5 minutes.
+        // Fails open if Redis is down (same policy as /api/chat).
+        const rl = await rateLimit(
+          `login:${parsed.data.email.toLowerCase()}`,
+          10,
+          300,
+        );
+        if (!rl.success) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email },

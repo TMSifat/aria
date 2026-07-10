@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { rateLimit } from '@/lib/ratelimit';
 
 export const runtime = 'nodejs';
 
@@ -12,6 +13,17 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Abuse protection: 5 signups per IP per hour.
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const rl = await rateLimit(`register:${ip}`, 5, 3600);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Too many signups from this network. Try again later.' },
+      { status: 429 },
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const parsed = registerSchema.safeParse(body);
   if (!parsed.success) {

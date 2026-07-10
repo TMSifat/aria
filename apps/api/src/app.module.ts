@@ -7,6 +7,7 @@ import { AssistantsModule } from './assistants/assistants.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { UsageModule } from './usage/usage.module';
 import { ResponseInterceptor } from './common/response.interceptor';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ResponseInterceptor } from './common/response.interceptor';
     ApiKeysModule,
     UsageModule,
   ],
+  controllers: [HealthController],
   providers: [
     // API-key auth is applied to every route by default. Routes decorated with
     // @Public() opt out (see UsageController's internal /usage/log endpoint).

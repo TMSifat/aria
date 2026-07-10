@@ -475,8 +475,8 @@ export default function LandingPage() {
           <div className="flex items-center gap-7 text-[13.5px] text-on-dark-muted">
             <Link href="/login">Sign in</Link>
             <Link href="/signup">Sign up</Link>
-            <span className="cursor-default">Docs</span>
-            <span className="cursor-default">GitHub</span>
+            <Link href="/terms">Terms</Link>
+            <Link href="/privacy">Privacy</Link>
           </div>
           <span className="font-mono text-xs text-faint">
             © {new Date().getFullYear()} ARIA
