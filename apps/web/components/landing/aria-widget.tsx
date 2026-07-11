@@ -87,7 +87,7 @@ export function AriaWidget() {
               className="h-[7px] w-[7px] rounded-full bg-success-dark"
               style={{ animation: 'pulseDot 2s ease infinite' }}
             />
-            <span className="text-[13px] font-semibold">Aria assistant</span>
+            <span className="text-[13px] font-semibold">Ariaay assistant</span>
             <span className="ml-auto font-mono text-[10px] tracking-[0.12em] text-faint">
               LIVE DEMO
             </span>

@@ -13,7 +13,7 @@ export default function LegalLayout({
             href="/"
             className="font-display text-lg font-bold tracking-tight text-text-base"
           >
-            Aria<span className="text-primary">.</span>
+            Ariaay<span className="text-primary">.</span>
           </Link>
           <Link href="/signup" className="text-sm font-medium text-primary">
             Get started

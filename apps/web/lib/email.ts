@@ -14,7 +14,7 @@ interface SendEmailOptions {
  */
 export async function sendEmail(opts: SendEmailOptions): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? 'Aria <onboarding@resend.dev>';
+  const from = process.env.EMAIL_FROM ?? 'Ariaay <onboarding@resend.dev>';
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'production') {
@@ -46,9 +46,9 @@ export function passwordResetEmail(resetUrl: string): {
   html: string;
   text: string;
 } {
-  const subject = 'Reset your Aria password';
+  const subject = 'Reset your Ariaay password';
   const text = [
-    'Someone requested a password reset for your Aria account.',
+    'Someone requested a password reset for your Ariaay account.',
     '',
     `Reset your password: ${resetUrl}`,
     '',
@@ -59,9 +59,9 @@ export function passwordResetEmail(resetUrl: string): {
 <html>
   <body style="margin:0;padding:32px 16px;background:#f8fafc;font-family:Inter,-apple-system,Segoe UI,sans-serif;color:#0f172a;">
     <div style="max-width:440px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:32px;">
-      <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px;">Aria</div>
+      <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:16px;">Ariaay</div>
       <p style="font-size:14px;line-height:1.6;margin:0 0 20px;">
-        Someone requested a password reset for your Aria account. Click the button
+        Someone requested a password reset for your Ariaay account. Click the button
         below to choose a new password.
       </p>
       <a href="${resetUrl}"

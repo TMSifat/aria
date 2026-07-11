@@ -16,8 +16,8 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle('Aria API')
-    .setDescription('Aria AI Assistant Platform REST API')
+    .setTitle('Ariaay API')
+    .setDescription('Ariaay AI Assistant Platform REST API')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -25,7 +25,7 @@ async function bootstrap() {
 
   const port = Number(process.env.API_PORT ?? 3001);
   await app.listen(port);
-  console.log(`Aria API running on http://localhost:${port}`);
+  console.log(`Ariaay API running on http://localhost:${port}`);
   console.log(`Swagger docs at   http://localhost:${port}/api/docs`);
 }
 

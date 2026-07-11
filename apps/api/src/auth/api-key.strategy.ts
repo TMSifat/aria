@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**
- * Passport strategy that authenticates requests bearing an Aria API key:
+ * Passport strategy that authenticates requests bearing an Ariaay API key:
  *
  *   Authorization: Bearer aria_sk_xxxxxxxx...
  *

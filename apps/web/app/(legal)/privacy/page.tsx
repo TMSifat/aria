@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Aria',
+  title: 'Privacy Policy — Ariaay',
 };
 
 const CONTACT_EMAIL =
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
       </p>
 
       <P>
-        This policy explains what data Aria collects, why, and how it is
+        This policy explains what data Ariaay collects, why, and how it is
         handled when you use our website, dashboard, API, and embeddable chat
         widget.
       </P>

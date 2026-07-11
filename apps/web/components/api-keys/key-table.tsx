@@ -102,7 +102,7 @@ export function KeyTable({ initialKeys }: { initialKeys: MaskedApiKey[] }) {
             API Keys<span className="text-primary">.</span>
           </h2>
           <p className="mt-1.5 text-[14.5px] text-muted">
-            Scoped bearer keys for the Aria REST API.
+            Scoped bearer keys for the Ariaay REST API.
           </p>
         </div>
         <Dialog

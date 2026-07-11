@@ -23,11 +23,11 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Aria — AI Assistant Builder',
+  title: 'Ariaay — AI Assistant Builder',
   description:
     'AI assistants with your instructions and your knowledge base. Test them live, then embed anywhere with one line of code.',
   openGraph: {
-    title: 'Aria — AI Assistant Builder',
+    title: 'Ariaay — AI Assistant Builder',
     description:
       'AI assistants with your instructions and your knowledge base. Test them live, then embed anywhere with one line of code.',
     type: 'website',

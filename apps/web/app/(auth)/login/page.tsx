@@ -81,7 +81,7 @@ export default function LoginPage() {
       <h1 className="font-display text-[27px] font-bold tracking-[-0.025em]">
         Welcome back<span className="text-primary">.</span>
       </h1>
-      <p className="mt-2 text-sm text-muted">Sign in to your Aria account.</p>
+      <p className="mt-2 text-sm text-muted">Sign in to your Ariaay account.</p>
 
       <div className="mt-[26px] flex flex-col gap-4">
         {error && (

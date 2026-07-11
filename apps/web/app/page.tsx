@@ -59,7 +59,7 @@ const SECURITY = [
   },
   {
     title: 'No card data stored',
-    body: "All payments run through Stripe. Card details never touch Aria's servers.",
+    body: "All payments run through Stripe. Card details never touch Ariaay's servers.",
   },
   {
     title: 'Rate limiting',
@@ -109,7 +109,7 @@ const FAQ = [
 function Wordmark({ className }: { className?: string }) {
   return (
     <span className={className}>
-      Aria<span className="text-primary">.</span>
+      Ariaay<span className="text-primary">.</span>
     </span>
   );
 }
