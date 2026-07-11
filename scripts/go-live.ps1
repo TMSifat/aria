@@ -14,35 +14,10 @@ Set-Location (Join-Path $PSScriptRoot '..')
 
 function Step($msg) { Write-Host "`n== $msg" -ForegroundColor Cyan }
 
-# ─── 1. Production database migration ───────────────────────────────────────
-Step 'Pulling production env from Vercel'
-$envFile = '.vercel\.env.production.local'
-npx vercel env pull $envFile --environment production | Out-Null
-if (-not (Test-Path $envFile)) {
-  Write-Host 'Could not pull Vercel env. Run "npx vercel login" first, then re-run this script.' -ForegroundColor Red
-  exit 1
-}
-
-$direct = $null
-$m = Select-String -Path $envFile -Pattern '^DATABASE_URL_UNPOOLED="([^"]+)"'
-if ($m) { $direct = $m.Matches[0].Groups[1].Value }
-if (-not $direct) {
-  $m = Select-String -Path $envFile -Pattern '^DATABASE_URL="([^"]+)"'
-  if ($m) { $direct = $m.Matches[0].Groups[1].Value }
-}
-if (-not $direct) {
-  Write-Host 'No DATABASE_URL found in Vercel env — connect Neon to the Vercel project first.' -ForegroundColor Red
-  exit 1
-}
-
-Step 'Applying migrations to the production database (Neon)'
-$env:DATABASE_URL = $direct
-$env:DIRECT_DATABASE_URL = $direct
-npx prisma migrate deploy
-if ($LASTEXITCODE -ne 0) {
-  Write-Host 'Migration failed — stopping. Nothing else was changed.' -ForegroundColor Red
-  exit 1
-}
+# ─── 1. Database migrations ──────────────────────────────────────────────────
+# Migrations run automatically during every Vercel build
+# (apps/web/scripts/migrate-deploy.mjs) — nothing to do here.
+Step 'Database migrations: handled automatically on deploy'
 
 # ─── 2. Vercel production env vars ───────────────────────────────────────────
 Step 'Setting Vercel production env vars (existing ones are left untouched)'
@@ -85,9 +60,10 @@ if (-not ($existing -match '(?m)^\s*GOOGLE_API_KEY\s')) {
   }
 }
 
-# ─── 4. Redeploy so the new env takes effect ─────────────────────────────────
-Step 'Triggering a fresh production deploy'
-git commit --allow-empty -m 'chore: redeploy with production env' | Out-Null
+# ─── 4. Ship pending work + redeploy so the new env takes effect ────────────
+Step 'Committing any pending changes and triggering a production deploy'
+git add -A
+git commit -m 'chore: ship pending changes + redeploy with production env' --allow-empty | Out-Null
 git push origin main
 if ($LASTEXITCODE -ne 0) {
   Write-Host 'git push failed — deploy from the Vercel dashboard instead.' -ForegroundColor Red
