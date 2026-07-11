@@ -37,7 +37,14 @@ export default async function BillingPage() {
       : Math.min(100, Math.round((summary.thisMonth / limit) * 100));
 
   const statusLabel = STATUS_META[status] ?? STATUS_META.INCOMPLETE;
-  const canManage = plan !== 'FREE' && status !== 'CANCELED';
+  const stripeConfigured = Boolean(
+    process.env.STRIPE_SECRET_KEY?.startsWith('sk_') &&
+      !process.env.STRIPE_SECRET_KEY.includes('replace') &&
+      process.env.STRIPE_PRO_PRICE_ID?.startsWith('price_') &&
+      !process.env.STRIPE_PRO_PRICE_ID.includes('replace'),
+  );
+  const canManage =
+    plan !== 'FREE' && status !== 'CANCELED' && stripeConfigured;
 
   return (
     <div className="mx-auto max-w-[1060px] space-y-7">
@@ -110,7 +117,7 @@ export default async function BillingPage() {
         <div className="mb-3.5 font-mono text-[10.5px] tracking-[0.16em] text-muted">
           CHANGE PLAN
         </div>
-        <PlanCards currentPlan={plan} />
+        <PlanCards currentPlan={plan} stripeConfigured={stripeConfigured} />
       </div>
     </div>
   );

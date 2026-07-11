@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useGoogleAuth } from '@/components/auth/use-google-auth';
 
 function GoogleIcon() {
   return (
@@ -36,6 +37,7 @@ function GoogleIcon() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const googleEnabled = useGoogleAuth();
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -136,31 +138,35 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="flex items-center gap-3">
-          <Separator className="flex-1" />
-          <span className="font-mono text-[10.5px] tracking-[0.14em] text-faint">
-            OR
-          </span>
-          <Separator className="flex-1" />
-        </div>
+        {googleEnabled && (
+          <>
+            <div className="flex items-center gap-3">
+              <Separator className="flex-1" />
+              <span className="font-mono text-[10.5px] tracking-[0.14em] text-faint">
+                OR
+              </span>
+              <Separator className="flex-1" />
+            </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={googleLoading}
-          onClick={() => {
-            setGoogleLoading(true);
-            void signIn('google', { redirectTo: '/dashboard' });
-          }}
-        >
-          {googleLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <GoogleIcon />
-          )}
-          Sign in with Google
-        </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={googleLoading}
+              onClick={() => {
+                setGoogleLoading(true);
+                void signIn('google', { redirectTo: '/dashboard' });
+              }}
+            >
+              {googleLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <GoogleIcon />
+              )}
+              Sign in with Google
+            </Button>
+          </>
+        )}
 
         <p className="text-center text-[13.5px] text-muted">
           Don&apos;t have an account?{' '}

@@ -12,16 +12,26 @@ const credentialsSchema = z.object({
   password: z.string().min(6),
 });
 
+// Google sign-in is only offered when OAuth credentials are configured; the
+// login/signup pages read /api/auth/providers and hide the button otherwise.
+const googleConfigured = Boolean(
+  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET,
+);
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: 'jwt' },
   pages: { signIn: '/login', error: '/login' },
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
-      allowDangerousEmailAccountLinking: true,
-    }),
+    ...(googleConfigured
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -75,6 +85,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         ]);
         token.plan = sub?.plan ?? 'FREE';
         token.role = dbUser?.role ?? 'USER';
+
+        // Bootstrap: the ADMIN_EMAIL account is promoted to admin on sign-in,
+        // so no manual SQL is needed to create the first admin.
+        const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+        if (
+          adminEmail &&
+          dbUser &&
+          dbUser.email.toLowerCase() === adminEmail &&
+          dbUser.role !== 'ADMIN'
+        ) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { role: 'ADMIN' },
+          });
+          token.role = 'ADMIN';
+        }
       }
       return token;
     },

@@ -45,7 +45,14 @@ async function openBillingPortal(onDone: () => void) {
 
 const ORDER: PlanId[] = ['FREE', 'STARTER', 'PRO', 'AGENCY'];
 
-export function PlanCards({ currentPlan }: { currentPlan: PlanId }) {
+export function PlanCards({
+  currentPlan,
+  stripeConfigured = true,
+}: {
+  currentPlan: PlanId;
+  /** When Stripe isn't set up yet, paid-plan buttons render as "Coming soon". */
+  stripeConfigured?: boolean;
+}) {
   const [loading, setLoading] = React.useState<PlanId | null>(null);
   const currentRank = ORDER.indexOf(currentPlan);
 
@@ -87,6 +94,10 @@ export function PlanCards({ currentPlan }: { currentPlan: PlanId }) {
                 disabled
               >
                 Current plan
+              </Button>
+            ) : !stripeConfigured ? (
+              <Button variant="outline" className="mt-[18px] w-full" disabled>
+                Coming soon
               </Button>
             ) : isUpgrade ? (
               <Button
