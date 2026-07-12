@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PLANS } from '@/lib/plans';
 import { Button } from '@/components/ui/button';
 import { AriaWidget } from '@/components/landing/aria-widget';
+import { Splash } from '@/components/landing/splash';
 import { AriaayLogo } from '@/components/logo';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 
@@ -114,6 +115,7 @@ function Wordmark({ className }: { className?: string }) {
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen overflow-x-clip bg-bg text-text-base">
+      <Splash />
       <ScrollReveal />
 
       {/* Nav */}
