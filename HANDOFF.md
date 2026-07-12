@@ -130,7 +130,7 @@ Deps installed with `npm install --legacy-peer-deps` (React 19 peer noise).
 - **Don't rename identifiers:** `aria_sk_` (API key prefix — renaming breaks existing keys), `@aria/web`/`@aria/api` (package names), folder `D:\MAIN\aria`, the Vercel project/domain. Only user-facing display text says "Ariaay".
 - **`aria-git-main-*.vercel.app` has Vercel Deployment Protection** (redirects to SSO) — that's normal; use the `aria-neon-sigma.vercel.app` production alias, which is public.
 - **`.env` values aren't readable from Vercel** (Neon integration vars pull back empty) — that's why migrations run inside the build, not from a local pull.
-- Model default is `gemini-2.5-flash`. The chat model badge / any "claude" mention was removed during the provider swap + rebrand.
+- Model default is `gemini-flash-latest` (July 2026: Google RETIRED `gemini-2.5-flash` → 404 invalid model; lib/ai.ts remaps retired pinned models in code and disables thinking via thinkingBudget:0 so answers are not eaten by reasoning tokens). The prod GOOGLE_MODEL env var still says gemini-2.5-flash but is safely ignored by the remap.
 - Windows: use Git Bash for POSIX, but PowerShell for some things; `sleep` inside a loop works, bare foreground long sleeps are discouraged.
 
 ---
