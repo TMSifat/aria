@@ -40,7 +40,16 @@ export function activeProvider(): AiProvider {
   return process.env.GOOGLE_API_KEY ? 'google' : 'anthropic';
 }
 
-const GOOGLE_MODEL = process.env.GOOGLE_MODEL ?? 'gemini-2.5-flash';
+// "-latest" alias tracks Google's current flash model — pinned versions get
+// retired (gemini-2.5-flash started 404ing for this key in July 2026).
+// Retired pinned models are remapped in code so a stale GOOGLE_MODEL env var
+// (e.g. on Vercel) can never break chat again.
+const RETIRED_GOOGLE_MODELS = new Set(['gemini-2.5-flash']);
+const envGoogleModel = process.env.GOOGLE_MODEL;
+const GOOGLE_MODEL =
+  envGoogleModel && !RETIRED_GOOGLE_MODELS.has(envGoogleModel)
+    ? envGoogleModel
+    : 'gemini-flash-latest';
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6';
 
 async function streamGoogle(opts: StreamChatOptions): Promise<StreamUsage> {
@@ -60,6 +69,10 @@ async function streamGoogle(opts: StreamChatOptions): Promise<StreamUsage> {
     config: {
       systemInstruction: opts.system,
       maxOutputTokens: opts.maxTokens ?? 1024,
+      // Newer flash models "think" by default and can burn the entire token
+      // budget on internal reasoning (truncated/garbled replies). Assistants
+      // here want fast, direct answers — disable thinking.
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 

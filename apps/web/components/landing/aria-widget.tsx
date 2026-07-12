@@ -2,7 +2,10 @@
 
 import * as React from 'react';
 
-const MESSAGES = [
+// Scripted intro that auto-plays when the widget opens, so the demo shows
+// itself off. After it finishes (or any time really), the input is REAL —
+// messages go to /api/demo-chat and stream back from the live model.
+const INTRO = [
   { role: 'user', text: "What's your return policy?" },
   {
     role: 'ai',
@@ -13,7 +16,12 @@ const MESSAGES = [
     role: 'ai',
     text: 'Yes — we ship to 45+ countries at a $9.99 flat rate. Delivery takes 7–14 business days.',
   },
-];
+] as const;
+
+interface Msg {
+  role: 'user' | 'ai';
+  text: string;
+}
 
 function Typing() {
   return (
@@ -31,7 +39,7 @@ function Typing() {
   );
 }
 
-function Bubble({ role, text }: { role: string; text: string }) {
+function Bubble({ role, text }: Msg) {
   const user = role === 'user';
   return (
     <div className={user ? 'flex justify-end' : 'flex justify-start'}>
@@ -39,7 +47,7 @@ function Bubble({ role, text }: { role: string; text: string }) {
         className={
           user
             ? 'max-w-[80%] rounded-2xl rounded-tr-sm bg-text-base px-3.5 py-2.5 text-[13px] leading-relaxed text-surface'
-            : 'max-w-[80%] rounded-2xl rounded-tl-sm border border-border bg-[#F1EDE2] px-3.5 py-2.5 text-[13px] leading-relaxed text-text-base'
+            : 'max-w-[80%] whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-border bg-[#F1EDE2] px-3.5 py-2.5 text-[13px] leading-relaxed text-text-base'
         }
       >
         {text}
@@ -50,23 +58,37 @@ function Bubble({ role, text }: { role: string; text: string }) {
 
 export function AriaWidget() {
   const [open, setOpen] = React.useState(false);
-  const [stage, setStage] = React.useState(0);
+  const [messages, setMessages] = React.useState<Msg[]>([]);
+  const [typing, setTyping] = React.useState(false);
+  const [input, setInput] = React.useState('');
+  const [sending, setSending] = React.useState(false);
   const timersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
+  const introDoneRef = React.useRef(false);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
 
-  function openDemo() {
+  // Keep the newest message in view.
+  React.useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, typing]);
+
+  function playIntro() {
+    if (introDoneRef.current) return;
     timersRef.current.forEach(clearTimeout);
-    setStage(0);
-    const timings: [number, number][] = [
-      [400, 1],
-      [1100, 2],
-      [2400, 3],
-      [3800, 4],
-      [4600, 5],
-      [5900, 6],
+    setMessages([]);
+    const steps: [number, () => void][] = [
+      [400, () => setMessages([{ ...INTRO[0] }])],
+      [1100, () => setTyping(true)],
+      [2400, () => { setTyping(false); setMessages([{ ...INTRO[0] }, { ...INTRO[1] }]); }],
+      [3800, () => setMessages([{ ...INTRO[0] }, { ...INTRO[1] }, { ...INTRO[2] }])],
+      [4600, () => setTyping(true)],
+      [5900, () => {
+        setTyping(false);
+        setMessages(INTRO.map((m) => ({ ...m })));
+        introDoneRef.current = true;
+      }],
     ];
-    timersRef.current = timings.map(([delay, s]) =>
-      setTimeout(() => setStage(s), delay),
-    );
+    timersRef.current = steps.map(([delay, fn]) => setTimeout(fn, delay));
   }
 
   React.useEffect(() => () => timersRef.current.forEach(clearTimeout), []);
@@ -74,8 +96,123 @@ export function AriaWidget() {
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next) openDemo();
-    else timersRef.current.forEach(clearTimeout);
+    if (next) playIntro();
+    else {
+      timersRef.current.forEach(clearTimeout);
+      setTyping(false);
+    }
+  }
+
+  // A real user message interrupts whatever is left of the intro.
+  function interruptIntro() {
+    timersRef.current.forEach(clearTimeout);
+    if (!introDoneRef.current) {
+      introDoneRef.current = true;
+      setTyping(false);
+      setMessages(INTRO.map((m) => ({ ...m })));
+    }
+  }
+
+  async function send() {
+    const question = input.trim();
+    if (!question || sending) return;
+    interruptIntro();
+    setInput('');
+    setSending(true);
+    setTyping(true);
+
+    // History for the model = everything currently on screen.
+    const history = [
+      ...INTRO.filter(() => introDoneRef.current),
+      ...messages.slice(INTRO.length),
+    ].map((m) => ({
+      role: m.role === 'ai' ? ('assistant' as const) : ('user' as const),
+      content: m.text,
+    }));
+
+    setMessages((prev) => [...prev, { role: 'user', text: question }]);
+
+    try {
+      const res = await fetch('/api/demo-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: question, history }),
+      });
+
+      if (!res.ok || !res.body) {
+        const data = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(data?.error ?? 'The demo hit a snag — please try again.');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let started = false;
+
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+        for (const event of events) {
+          const line = event.trim();
+          if (!line.startsWith('data: ')) continue;
+          const payload = line.slice(6);
+          if (payload === '[DONE]') continue;
+          const parsed = JSON.parse(payload) as {
+            text?: string;
+            error?: string;
+          };
+          if (parsed.error) throw new Error(parsed.error);
+          if (parsed.text) {
+            if (!started) {
+              started = true;
+              setTyping(false);
+              setMessages((prev) => [...prev, { role: 'ai', text: parsed.text! }]);
+            } else {
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                next[next.length - 1] = {
+                  ...last,
+                  text: last.text + parsed.text!,
+                };
+                return next;
+              });
+            }
+          }
+        }
+      }
+
+      if (!started) {
+        throw new Error('The demo hit a snag — please try again.');
+      }
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'ai',
+          text:
+            err instanceof Error
+              ? err.message
+              : 'The demo hit a snag — please try again.',
+        },
+      ]);
+    } finally {
+      setTyping(false);
+      setSending(false);
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void send();
+    }
   }
 
   return (
@@ -92,21 +229,35 @@ export function AriaWidget() {
               LIVE DEMO
             </span>
           </div>
-          <div className="flex min-h-[170px] flex-col gap-2.5 p-4">
-            {stage >= 1 && <Bubble role="user" text={MESSAGES[0].text} />}
-            {stage === 2 && <Typing />}
-            {stage >= 3 && <Bubble role="ai" text={MESSAGES[1].text} />}
-            {stage >= 4 && <Bubble role="user" text={MESSAGES[2].text} />}
-            {stage === 5 && <Typing />}
-            {stage >= 6 && <Bubble role="ai" text={MESSAGES[3].text} />}
+          <div
+            ref={scrollRef}
+            className="flex max-h-[340px] min-h-[170px] flex-col gap-2.5 overflow-y-auto p-4"
+          >
+            {messages.map((m, i) => (
+              <Bubble key={i} role={m.role} text={m.text} />
+            ))}
+            {typing && <Typing />}
           </div>
           <div className="flex items-center gap-2.5 border-t border-border px-4 py-3">
-            <div className="flex-1 rounded-full border border-border bg-white px-3.5 py-2 text-xs text-faint">
-              Ask a question…
-            </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm text-surface">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder="Ask a question…"
+              maxLength={500}
+              aria-label="Ask the demo assistant a question"
+              className="min-w-0 flex-1 rounded-full border border-border bg-white px-3.5 py-2 text-xs text-text-base outline-none placeholder:text-faint focus:border-primary"
+            />
+            <button
+              type="button"
+              onClick={() => void send()}
+              disabled={sending || !input.trim()}
+              aria-label="Send"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm text-surface transition-opacity disabled:opacity-40"
+            >
               ↑
-            </div>
+            </button>
           </div>
         </div>
       )}

@@ -93,7 +93,7 @@ D:\MAIN\aria\
 
 - ⬜ **Stripe** not configured → billing page shows "Coming soon" for paid plans (graceful, nothing breaks). Needs products/prices + webhook + keys per DEPLOYMENT.md §6.
 - ⬜ **Resend** email not configured → password-reset email will THROW in prod (works in dev via console log). Needs `RESEND_API_KEY` + `EMAIL_FROM`.
-- ⬜ **Google OAuth** not configured → "Sign in with Google" button is auto-hidden (conditional on `/api/auth/providers`). Needs `GOOGLE_CLIENT_ID`/`SECRET`.
+- ✅ **Google OAuth DONE** (2026-07-12) — GCP project `ariaay`, client "Ariaay Web", consent screen published to Production. ID+secret in local `.env`/`apps/web/.env.local` AND Vercel prod (owner ran `ENABLE-GOOGLE-LOGIN.cmd`). Verified live: prod `/api/auth/providers` returns `google`. The secret is only retrievable from local .env — Google won't show it again. (Console shows 2 secrets on the client; the 2nd "NEW" one is active, the 1st is unused and deletable.)
 - ⬜ **Upstash Redis** not set in prod → rate limiting fails open (allows all). Add `REDIS_URL`.
 - ⬜ **Embed widget** (`cdn.aria.ai/widget.js`) is a placeholder — the actual widget.js bundle + public widget chat endpoint don't exist yet (v1 scope-out).
 - ⬜ Custom domain, tests/CI, Sentry/error tracking.
