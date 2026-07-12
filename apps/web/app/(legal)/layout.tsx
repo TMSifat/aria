@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AriaayLogo } from '@/components/logo';
 
 export default function LegalLayout({
   children,
@@ -13,7 +14,7 @@ export default function LegalLayout({
             href="/"
             className="font-display text-lg font-bold tracking-tight text-text-base"
           >
-            Ariaay<span className="text-primary">.</span>
+            <AriaayLogo />
           </Link>
           <Link href="/signup" className="text-sm font-medium text-primary">
             Get started

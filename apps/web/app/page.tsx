@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { PLANS } from '@/lib/plans';
 import { Button } from '@/components/ui/button';
 import { AriaWidget } from '@/components/landing/aria-widget';
+import { AriaayLogo } from '@/components/logo';
 import { ScrollReveal } from '@/components/landing/scroll-reveal';
 
 const WORDS = [
@@ -107,11 +108,7 @@ const FAQ = [
 ];
 
 function Wordmark({ className }: { className?: string }) {
-  return (
-    <span className={className}>
-      Ariaay<span className="text-primary">.</span>
-    </span>
-  );
+  return <AriaayLogo className={className} />;
 }
 
 export default function LandingPage() {

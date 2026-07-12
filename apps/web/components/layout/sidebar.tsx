@@ -7,6 +7,7 @@ import { signOut } from 'next-auth/react';
 import { LogOut } from 'lucide-react';
 import { Avatar } from '@/components/ui/avatar';
 import { displayLimit } from '@/lib/plans';
+import { AriaayLogo } from '@/components/logo';
 import { cn } from '@/lib/utils';
 
 const GROUPS = [
@@ -63,7 +64,7 @@ export function Sidebar({
     <aside className="fixed left-0 top-0 z-30 flex h-screen w-[236px] flex-col bg-text-base text-bg">
       <div className="flex h-[68px] items-center border-b border-white/10 px-6">
         <Link href="/dashboard" className="font-display text-[22px] font-bold tracking-[-0.03em] text-bg">
-          Ariaay<span className="text-primary">.</span>
+          <AriaayLogo />
         </Link>
       </div>
 
