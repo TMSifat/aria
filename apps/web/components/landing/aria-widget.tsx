@@ -2,21 +2,8 @@
 
 import * as React from 'react';
 
-// Scripted intro that auto-plays when the widget opens, so the demo shows
-// itself off. After it finishes (or any time really), the input is REAL —
-// messages go to /api/demo-chat and stream back from the live model.
-const INTRO = [
-  { role: 'user', text: "What's your return policy?" },
-  {
-    role: 'ai',
-    text: 'Returns are accepted within 30 days, no questions asked. Refunds are processed within 48 hours.',
-  },
-  { role: 'user', text: 'Do you ship internationally?' },
-  {
-    role: 'ai',
-    text: 'Yes — we ship to 45+ countries at a $9.99 flat rate. Delivery takes 7–14 business days.',
-  },
-] as const;
+const GREETING =
+  'Hi! I’m the Ariaay assistant. Ask me anything — what Ariaay does, pricing, or how to put an assistant like me on your own site.';
 
 interface Msg {
   role: 'user' | 'ai';
@@ -58,12 +45,12 @@ function Bubble({ role, text }: Msg) {
 
 export function AriaWidget() {
   const [open, setOpen] = React.useState(false);
-  const [messages, setMessages] = React.useState<Msg[]>([]);
+  const [messages, setMessages] = React.useState<Msg[]>([
+    { role: 'ai', text: GREETING },
+  ]);
   const [typing, setTyping] = React.useState(false);
   const [input, setInput] = React.useState('');
   const [sending, setSending] = React.useState(false);
-  const timersRef = React.useRef<ReturnType<typeof setTimeout>[]>([]);
-  const introDoneRef = React.useRef(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   // Keep the newest message in view.
@@ -72,60 +59,15 @@ export function AriaWidget() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, typing]);
 
-  function playIntro() {
-    if (introDoneRef.current) return;
-    timersRef.current.forEach(clearTimeout);
-    setMessages([]);
-    const steps: [number, () => void][] = [
-      [400, () => setMessages([{ ...INTRO[0] }])],
-      [1100, () => setTyping(true)],
-      [2400, () => { setTyping(false); setMessages([{ ...INTRO[0] }, { ...INTRO[1] }]); }],
-      [3800, () => setMessages([{ ...INTRO[0] }, { ...INTRO[1] }, { ...INTRO[2] }])],
-      [4600, () => setTyping(true)],
-      [5900, () => {
-        setTyping(false);
-        setMessages(INTRO.map((m) => ({ ...m })));
-        introDoneRef.current = true;
-      }],
-    ];
-    timersRef.current = steps.map(([delay, fn]) => setTimeout(fn, delay));
-  }
-
-  React.useEffect(() => () => timersRef.current.forEach(clearTimeout), []);
-
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next) playIntro();
-    else {
-      timersRef.current.forEach(clearTimeout);
-      setTyping(false);
-    }
-  }
-
-  // A real user message interrupts whatever is left of the intro.
-  function interruptIntro() {
-    timersRef.current.forEach(clearTimeout);
-    if (!introDoneRef.current) {
-      introDoneRef.current = true;
-      setTyping(false);
-      setMessages(INTRO.map((m) => ({ ...m })));
-    }
-  }
-
   async function send() {
     const question = input.trim();
     if (!question || sending) return;
-    interruptIntro();
     setInput('');
     setSending(true);
     setTyping(true);
 
     // History for the model = everything currently on screen.
-    const history = [
-      ...INTRO.filter(() => introDoneRef.current),
-      ...messages.slice(INTRO.length),
-    ].map((m) => ({
+    const history = messages.map((m) => ({
       role: m.role === 'ai' ? ('assistant' as const) : ('user' as const),
       content: m.text,
     }));
@@ -143,7 +85,7 @@ export function AriaWidget() {
         const data = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(data?.error ?? 'The demo hit a snag — please try again.');
+        throw new Error(data?.error ?? 'The chat hit a snag — please try again.');
       }
 
       const reader = res.body.getReader();
@@ -189,7 +131,7 @@ export function AriaWidget() {
       }
 
       if (!started) {
-        throw new Error('The demo hit a snag — please try again.');
+        throw new Error('The chat hit a snag — please try again.');
       }
     } catch (err) {
       setMessages((prev) => [
@@ -199,7 +141,7 @@ export function AriaWidget() {
           text:
             err instanceof Error
               ? err.message
-              : 'The demo hit a snag — please try again.',
+              : 'The chat hit a snag — please try again.',
         },
       ]);
     } finally {
@@ -225,9 +167,6 @@ export function AriaWidget() {
               style={{ animation: 'pulseDot 2s ease infinite' }}
             />
             <span className="text-[13px] font-semibold">Ariaay assistant</span>
-            <span className="ml-auto font-mono text-[10px] tracking-[0.12em] text-faint">
-              LIVE DEMO
-            </span>
           </div>
           <div
             ref={scrollRef}
@@ -246,7 +185,7 @@ export function AriaWidget() {
               onKeyDown={onKeyDown}
               placeholder="Ask a question…"
               maxLength={500}
-              aria-label="Ask the demo assistant a question"
+              aria-label="Ask the Ariaay assistant a question"
               className="min-w-0 flex-1 rounded-full border border-border bg-white px-3.5 py-2 text-xs text-text-base outline-none placeholder:text-faint focus:border-primary"
             />
             <button
@@ -265,7 +204,7 @@ export function AriaWidget() {
       <div style={{ animation: 'ariaPop .7s cubic-bezier(.34,1.56,.64,1) .4s both' }}>
         <button
           type="button"
-          onClick={toggle}
+          onClick={() => setOpen((v) => !v)}
           className="flex items-center gap-2.5 rounded-[26px_26px_8px_26px] border-[1.5px] border-primary/55 bg-text-base py-4 pl-[18px] pr-[26px] font-mono text-xs tracking-[0.16em] text-surface transition-transform hover:scale-[1.06] hover:bg-primary"
           style={{
             animation:
